@@ -1,27 +1,96 @@
 <script>
-  //   import { writable } from "svelte/store";
+  import { onMount, onDestroy } from "svelte";
   import {
     players as rawPlayers,
     answerTime,
-    names
+    names,
+    playerScores,
+    currentPlayerIndex,
+    gameState,
+    nextPlayer,
+    shuffleNames
   } from "./../stores/gameData.js";
 
-  const players = $rawPlayers.map(playerName => ({
-    name: playerName,
-    score: 0
-  }));
+  let timeRemaining = Infinity;
+  let timerInterval = null;
+  let isHandlingAnswer = false;
 
-  const scorePlayer = score => {
+  function startTimer() {
+    stopTimer();
+    if ($answerTime === Infinity || $gameState !== 'playing' || isHandlingAnswer) return;
+    
+    timeRemaining = $answerTime;
+    timerInterval = setInterval(() => {
+      if (timeRemaining <= 0) {
+        handleAnswer(0);
+      } else {
+        timeRemaining--;
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+
+  $: {
+    if ($answerTime !== Infinity && $gameState === 'playing' && !isHandlingAnswer) {
+      startTimer();
+    } else if ($answerTime === Infinity || $gameState !== 'playing') {
+      stopTimer();
+    }
+  }
+
+  function handleAnswer(score) {
+    if (isHandlingAnswer) return;
+    isHandlingAnswer = true;
+    stopTimer();
+    
     if (score === 1) {
-      names.set($names.slice(1));
+      playerScores.addScore($currentPlayerIndex, 1);
+      names.update(n => {
+        const newNames = n.slice(1);
+        if (newNames.length === 0) {
+          gameState.set('finished');
+          window.location.href = '/results';
+          return [];
+        }
+        return newNames;
+      });
+      
+      if ($names.length > 1) {
+        shuffleNames();
+      }
     }
 
     if ($names.length === 0) {
-      location.href = "/results";
-    } else {
-      names.set($names.slice().sort(() => Math.random() - 0.5));
+      gameState.set('finished');
+      window.location.href = '/results';
+      isHandlingAnswer = false;
+      return;
     }
-  };
+
+    nextPlayer();
+    isHandlingAnswer = false;
+    
+    if ($answerTime !== Infinity && $gameState === 'playing') {
+      startTimer();
+    }
+  }
+
+  onMount(() => {
+    gameState.set('playing');
+    if ($answerTime !== Infinity) {
+      startTimer();
+    }
+  });
+
+  onDestroy(() => {
+    stopTimer();
+  });
 </script>
 
 <style>
@@ -58,6 +127,10 @@
     color: #ffffff;
     font-size: 21px;
     align-self: flex-start;
+  }
+
+  .timer.warning {
+    background-color: #f15025;
   }
 
   h1 {
@@ -102,19 +175,25 @@
 
 <section>
   <div class="card">
-    {#if $answerTime !== Infinity}
-      <div class="timer">{$answerTime}</div>
+    {#if $answerTime !== Infinity && $gameState === 'playing'}
+      <div class="timer" class:warning={timeRemaining <= 5}>{timeRemaining}</div>
     {/if}
-    <h1>{$names[0]}</h1>
+    {#if $names.length > 0}
+      <h1>{$names[0]}</h1>
+    {:else}
+      <h1>No more names!</h1>
+    {/if}
   </div>
 
-  <h2>
-    <b>{players[0].name},</b>
-    can you tell anything about this person?
-  </h2>
+  {#if $names.length > 0 && $playerScores.length > 0}
+    <h2>
+      <b>{$playerScores[$currentPlayerIndex]?.name || 'Player'},</b>
+      can you tell anything about this person?
+    </h2>
 
-  <div class="buttons-wrap">
-    <button on:click={() => scorePlayer(1)} class="no">I can</button>
-    <button on:click={() => scorePlayer(0)} class="yes">I can't</button>
-  </div>
+    <div class="buttons-wrap">
+      <button on:click={() => handleAnswer(1)} class="no">I can</button>
+      <button on:click={() => handleAnswer(0)} class="yes">I can't</button>
+    </div>
+  {/if}
 </section>

@@ -1,22 +1,23 @@
 {
   "name": "bible-name",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w --single",
     "start": "sirv public --single"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "11.0.2",
-    "@rollup/plugin-node-resolve": "^7.0.0",
-    "rollup": "^1.20.0",
-    "rollup-plugin-livereload": "^1.0.0",
-    "rollup-plugin-svelte": "^5.0.3",
-    "rollup-plugin-terser": "^7.0.2",
-    "svelte": "^3.49.0"
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.19.0",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-svelte": "^7.1.9",
+    "svelte": "^4.2.18"
   },
   "dependencies": {
-    "sirv-cli": "^0.4.4",
-    "svelte-routing": "^1.4.2"
+    "sirv-cli": "^2.0.2",
+    "svelte-routing": "^1.7.0"
   }
 }

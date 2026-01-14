@@ -2,17 +2,29 @@
   import { Link } from "svelte-routing";
   import TimingSelect from "./../components/TimingSelect.svelte";
 
-  import { players } from "./../stores/gameData.js";
+  import { 
+    players, 
+    resetGame,
+    gameState 
+  } from "./../stores/gameData.js";
 
   const setPlayersNames = e => {
-    // console.log(e.target.value);
     players.set(
       e.target.value
         .replace(/,+$/, "")
         .trim()
         .split(/,+/)
+        .filter(name => name.length > 0)
     );
   };
+
+  function handleStartGame() {
+    if ($players.length === 0) {
+      alert('Please enter at least one player name');
+      return;
+    }
+    resetGame();
+  }
 </script>
 
 <style>
@@ -73,6 +85,6 @@
 </section>
 <section>
   <Link to="/questions">
-    <button>Start Game</button>
+    <button on:click={handleStartGame}>Start Game</button>
   </Link>
 </section>

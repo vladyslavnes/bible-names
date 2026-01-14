@@ -1,6 +1,5 @@
 <script>
   import { Router, Link, Route } from "svelte-routing";
-  import { setContext } from "svelte";
 
   import Home from "./routes/Home.svelte";
   import Questions from "./routes/Questions.svelte";
@@ -8,6 +7,17 @@
   import Settings from "./routes/Settings.svelte";
 
   export let url = "";
+  
+  $: {
+    if (url === '/questions') {
+      navbarHeading = 'Playing...';
+    } else if (url === '/results') {
+      navbarHeading = 'Results';
+    } else {
+      navbarHeading = 'Bible Names';
+    }
+  }
+  
   let navbarHeading = "Bible Names";
 </script>
 
